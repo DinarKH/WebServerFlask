@@ -1,7 +1,7 @@
 from flask import render_template, url_for, redirect, flash
 from .forms import RegistationForm, LoginForm
 from .models import Posts, User
-from WebServerFlask import app
+from WebServerFlask import app, bcrypt, db
 
 
 @app.route('/')
@@ -24,7 +24,13 @@ def posts_page():
 def register():
     form = RegistationForm()
     if form.validate_on_submit():
-        return redirect(url_for('posts_page'))
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data, email=form.email.data,
+                    password=hashed_password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Account create', 'success')
+        return redirect(url_for('login'))
     return render_template('register.html', form=form)
 
 
