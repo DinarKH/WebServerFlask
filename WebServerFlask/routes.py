@@ -2,12 +2,11 @@ from flask import render_template, url_for, redirect, flash
 from .forms import RegistationForm, LoginForm
 from .models import Posts, User
 from WebServerFlask import app, bcrypt, db
+from flask_login import login_user, current_user, logout_user
 
 
 @app.route('/')
 def home():
-    for post in Posts.query.all():
-        print(post.content)
     return render_template('home.html')
 
 
@@ -17,7 +16,7 @@ def posts_page():
         'test',
         'test2',
     ]
-    return render_template('post.html', posts=posts)
+    return render_template('post.html', posts=posts, current_user=current_user)
 
 
 @app.route('/register/', methods=['GET', 'POST'])
@@ -37,10 +36,18 @@ def register():
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-
     if form.validate_on_submit():
-        flash('You log in system', 'success')
-        return redirect(url_for('posts_page'))
-    # else:
-    #     flash('Invalid data', 'danger')
+        # flash('You log in system', 'success')
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=True)
+            return redirect(url_for('posts_page'))
+        else:
+            flash('Invalid data', 'danger')
     return render_template('login.html', form=form)
+
+
+@app.route('/logout/')
+def logout():
+    logout_user()
+    return redirect(url_for('posts_page'))
