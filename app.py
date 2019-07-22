@@ -1,14 +1,46 @@
 from flask import Flask, render_template, url_for, redirect, flash
 from forms import RegistationForm, LoginForm
-import sys
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
+POSTGRES_URL = "127.0.0.1"
+POSTGRES_USER = "Dinar5"
+POSTGRES_PW = ""
+POSTGRES_DB = "flaskdb"
+
 app.config['SECRET_KEY'] = 'b1af4eff3b8bde7a0982fcbc9905fb82'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user=POSTGRES_USER,
+                                                                                              pw=POSTGRES_PW,
+                                                                                              url=POSTGRES_URL,
+                                                                                              db=POSTGRES_DB)
+
+db = SQLAlchemy(app)
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    password = db.Column(db.String(60), nullable=False)
+
+    def __repr__(self):
+        return self.username
+
+
+class Posts(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return self.title
 
 
 @app.route('/')
 def home():
+    for post in Posts.query.all():
+        print(post.content)
     return render_template('home.html')
 
 
