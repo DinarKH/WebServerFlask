@@ -13,12 +13,18 @@ def home():
 @app.route('/posts/', methods=['GET', 'POST'])
 @login_required
 def posts_page():
-    delete_post = request.args.get('post_id')
-    if delete_post:
-        print(delete_post)
     posts = Posts.query.all()
     return render_template('post.html', posts=posts)
 
+
+@app.route('/post/<int:post_id>/delete/', methods=['POST'])
+@login_required
+def post_delete(post_id):
+    post = Posts.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Post was deleted')
+    return redirect(url_for('posts_page'))
 
 @app.route('/register/', methods=['GET'])
 def register():

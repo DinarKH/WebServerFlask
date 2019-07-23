@@ -1,7 +1,19 @@
 {% extends 'layout.html' %}
 {% block content %}
     {% for post in posts %}
-        {{ post.title }}_{{ post.content }}_<a href="./?post_id=5">link</a>{{ post.id }}<br>
+        <article class="media content-section">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <small class="text-muted">2018</small>
+                    <div>
+                    <form action="{{ url_for('post_delete', post_id=post.id) }}" method="POST">
+                        <input class="btn btn-danger btn-sm" type="submit" value="Delete">
+                    </form>
+                    </div>
+                </div>
+                <h2 class="article-title">{{ post.title }}</h2>
+                <p class="article-content">{{ post.content }}</p>
+            </div>
+        </article>
     {% endfor %}
-    {{ posts[0].content }}
 {% endblock content %}
