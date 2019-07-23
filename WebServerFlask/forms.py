@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from .models import User
 
@@ -17,7 +17,6 @@ class RegistationForm(FlaskForm):
         if user:
             raise ValidationError('Username must be original')
 
-
     def validate_email(self, email):
         email = User.query.filter_by(email=email.data).first()
         if email:
@@ -29,3 +28,9 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
+
+
+class PostForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired(), Length(max=100)])
+    content = TextAreaField('Content', validators=[DataRequired()])
+    submit = SubmitField('Post')

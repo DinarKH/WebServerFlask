@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% block content %}
     {% for post in posts %}
-        {{ post }}<br>
+        {{ post.title }}_{{ post.content }}_<a href="./?post_id=5">link</a>{{ post.id }}<br>
     {% endfor %}
+    {{ posts[0].content }}
 {% endblock content %}
