@@ -6,28 +6,31 @@ from flask_login import login_user, current_user, logout_user, login_required
 import datetime, time
 
 
-#
-# def home():
-#     return render_template('home.html')
-
 @app.route('/')
+def home():
+    return render_template('home.html')
+
+
 @app.route('/posts/', methods=['GET', 'POST'])
 @login_required
 def posts_page():
+    '''
+    Show posts from redis cache and delete
+    '''
     dt = datetime.datetime.now()
     curr_time = time.mktime(dt.timetuple())
-    r_client.zremrangebyscore(REDIS_SET, min='-inf', max=curr_time)
+    r_client.zremrangebyscore(REDIS_SET, min='-inf', max=curr_time)  # Delete old posts
     if request.method == 'POST':
-        r_client.zrem(REDIS_SET, request.values.get('post_name'))
+        r_client.zrem(REDIS_SET, request.values.get('post_name'))  # Delete redis post by name
         return redirect(url_for('posts_page'))
-    redis_posts = r_client.zrange(REDIS_SET, 0, -1)
+    redis_posts = r_client.zrange(REDIS_SET, 0, -1)  # Get redis posts
     return render_template('post.html', redis_posts=redis_posts)
 
 
-@app.route('/register/', methods=['GET'])
+@app.route('/register/', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('posts_page'))
     form = RegistationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
@@ -43,15 +46,15 @@ def register():
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('posts_page'))
     form = LoginForm()
     if form.validate_on_submit():
-        # flash('You log in system', 'success')
         user = User.query.filter_by(username=form.username.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
+            flash('You log in system', 'success')
             login_user(user, remember=True)
             next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('home'))
+            return redirect(next_page) if next_page else redirect(url_for('posts_page'))
         else:
             flash('Invalid data', 'danger')
     return render_template('login.html', form=form)
@@ -66,10 +69,14 @@ def logout():
 @app.route('/post/new/', methods=['GET', 'POST'])
 @login_required
 def post_new():
+    '''
+    Create new post for reids
+    '''
     form = PostForm()
     if form.validate_on_submit():
         dt = datetime.datetime.now()
         curr_time = time.mktime(dt.timetuple())
+        # Create post with time in value = current time + 5 minutes
         r_client.zadd(REDIS_SET, {form.content.data: curr_time + REDIS_POST_TTL})
         flash('Post was created', 'success')
         return redirect(url_for('posts_page'))

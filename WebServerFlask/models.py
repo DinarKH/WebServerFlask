@@ -7,6 +7,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+# User Model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), nullable=False, unique=True)
@@ -15,4 +16,3 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return self.username
-
