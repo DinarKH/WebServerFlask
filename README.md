@@ -14,7 +14,7 @@ SQLAlchemy для осущесвления работы с СУБД<br/>
 Redis для работы с сервером Redis<br/>
 Bcrypt для обеспечения шифрования паролей пользователей системы<br/>
 4. Инструкцию по запуску системы на любом компьютере<br/>
-docker-composer up<br/>
+docker-compose up<br/>
 pip install -r requirements.txt<br/>
 python app.py<br/>
 5. Сколько ты заложил времени до старта работы<br/>
