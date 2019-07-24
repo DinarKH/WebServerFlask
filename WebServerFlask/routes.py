@@ -1,9 +1,9 @@
 from flask import render_template, url_for, redirect, flash, request
 from .forms import RegistationForm, LoginForm, PostForm
 from .models import Posts, User
-from WebServerFlask import app, bcrypt, db
+from WebServerFlask import app, bcrypt, db, r_client
 from flask_login import login_user, current_user, logout_user, login_required
-
+import datetime, time
 
 @app.route('/')
 def home():
@@ -13,8 +13,11 @@ def home():
 @app.route('/posts/', methods=['GET', 'POST'])
 @login_required
 def posts_page():
+    if request.method == 'POST':
+        print(request.values.get('post_name'))
+    redis_posts= r_client.zrange('post_set', 0, -1)
     posts = Posts.query.all()
-    return render_template('post.html', posts=posts)
+    return render_template('post.html', posts=posts, redis_posts=redis_posts)
 
 
 @app.route('/post/<int:post_id>/delete/', methods=['POST'])
@@ -70,9 +73,15 @@ def logout():
 def post_new():
     form = PostForm()
     if form.validate_on_submit():
-        post = Posts(title=form.title.data, content=form.content.data)
-        db.session.add(post)
-        db.session.commit()
-        flash('Post was created', 'success')
+        dt = datetime.datetime.now()
+        s = time.mktime(dt.timetuple())
+        print('Current time is {}'.format(s))
+        r_client.zadd('post_set', {form.content.data: s + 110})
+        # print(r_server.zremrangebyscore('post_set', min='-inf', max=s))
+        # print(r_client.zrange('post_set', 0, -1, withscores=True))
+        # post = Posts(title=form.title.data, content=form.content.data)
+        # db.session.add(post)
+        # db.session.commit()
+        # flash('Post was created', 'success')
         return redirect(url_for('posts_page'))
     return render_template('new_post.html', form=form)
